@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 class EnvConfig(BaseModel):
-    version: str = Field(
+    bc_version: str = Field(
         description="Bridgic Code 版本号"
     )
     workspace: str = Field(
@@ -16,7 +16,7 @@ class EnvConfig(BaseModel):
     @classmethod
     def from_env(cls) -> "EnvConfig":
         return cls(
-            version=os.getenv("VERSION", "v0.1.0"),
+            bc_version=os.getenv("BC_VERSION", "v0.1.0"),
             workspace=os.getenv("WORKSPACE", "./workspace"),
         )
     
