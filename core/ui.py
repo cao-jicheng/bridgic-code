@@ -27,27 +27,21 @@ box_style = Style.from_dict({
     "bottom-toolbar": "#ffffff bg:#333333 noreverse"
 })
 
-input_completer = WordCompleter([
-    "/init   初始化工作区环境",
-    "/models 列出已安装的模型",
-    "/tools  列出已安装的工具"
-    "/help   显示帮助信息",
-])
-
 input_examples = [
-    "统计工作区的文件类型",
-    "生成一个快速排序算法",
-    "分析当前代码实现了什么功能"
+    "请告诉我应该怎么帮助你？",
+    "初始化工程",
+    "试一试 “统计工作区的文件类型” ",
+    "试一试 “生成一个快速排序算法” ",
+    "试一试 “分析当前代码实现了什么功能” "
 ]
 
-class AgentRander():
+class AgentUI():
     def __init__(self) -> None:
         self.console = Console()
-        self.window_width = 120
-        self.input_history_path = os.path.expanduser("~/.bridgic-code.input.history")
-        if not os.path.exists(self.input_history_path):
-            open(self.input_history_path, 'w').close()
-        self.input_session = PromptSession(show_frame=~is_done, history=FileHistory(self.input_history_path))
+        self.chat_history_path = os.path.expanduser("~/.bridgic-code.chat.history")
+        if not os.path.exists(self.chat_history_path):
+            open(self.chat_history_path, 'w').close()
+        self.input_session = PromptSession(show_frame=~is_done, history=FileHistory(self.chat_history_path))
     
     def print(self, data: Any) -> None:
         return self.console.print(data)
@@ -68,14 +62,13 @@ class AgentRander():
     def user_input(self) -> str:
         result = self.input_session.prompt("> ", 
             style=box_style,
-            completer=input_completer,
-            placeholder=f'试一试 "{random.choice(input_examples)}"',
+            placeholder=random.choice(input_examples),
             bottom_toolbar=HTML(" 支持粘贴单行/多行文本, 按下 <b>[Enter]</b> 来确认")
         )
-        return result
+        return result.strip()
     
-    def clean_input_history(self) -> None:
-        file = open(self.input_history_path, 'w')
+    def clean_chat_history(self) -> None:
+        file = open(self.chat_history_path, 'w')
         file.truncate()
         file.close()
 
@@ -91,31 +84,34 @@ class AgentRander():
         info.add_row(f"[green]当前版本：[/green]{env.bc_version}")
         info.add_row(f"[green]聊天模型：[/green]{llm.chat_model}")
         info.add_row(f"[green]嵌入模型：[/green]{llm.emb_model}")
-        info.add_row(f"[green]工作路径：[/green]{env.workspace}")
-        return Panel(info, border_style="gray53", width=self.window_width-32)
+        info.add_row(f"[green]项目路径：[/green]{env.workspace}")
+        return Panel(info, border_style="gray53")
 
     def make_layout(self) -> Layout:
         self.layout = Layout(name="root")
         self.layout.split_column(
             Layout(name="upper", size=6),
-            Layout(Panel("暂无进展", title="智能体执行进展", title_align="left", border_style="gray53", 
-                width=self.window_width), name="progress", minimum_size=3),
-            Layout(Panel("暂无输出", title="控制台日志输出", title_align="left", border_style="gray53", 
-                width=self.window_width), name="output", minimum_size=3)
+            Layout(Panel("暂无进展", title="智能体执行进展", title_align="left", border_style="gray53"), 
+                name="progress", minimum_size=3),
+            Layout(Panel("暂无输出", title="控制台日志输出", title_align="left", border_style="gray53"), 
+                name="output", minimum_size=3)
         )
         self.layout["upper"].split_row(
             Layout(name="banner", size=32),
-            Layout(name="info")
+            Layout(name="info", size=80)
         )
         self.layout["banner"].update(self._show_banner())
         self.layout["info"].update(self._show_info())
 
 
 if __name__ == "__main__":
-    rander = AgentRander()
-    rander.make_layout()
-    rander.print(rander.layout)
-    rander.user_input()
-    rander.user_choose(["小学", "初中", "高中", "大学"])
-    rander.user_confirm("是否要继续执行？")
-    rander.clean_input_history()
+    ui = AgentUI()
+    ui.make_layout()
+    ui.print(ui.layout)
+    # ui.user_input()
+    # ui.user_choose(["小学", "初中", "高中", "大学"])
+    # ui.user_confirm("是否要继续执行？")
+    # ui.clean_chat_history()
+
+
+
